@@ -1,3 +1,13 @@
+-- Drop existing types if they exist
+DROP TYPE IF EXISTS user_type_enum CASCADE;
+DROP TYPE IF EXISTS severity_enum CASCADE;
+DROP TYPE IF EXISTS status_enum CASCADE;
+
+-- Create ENUM types
+CREATE TYPE user_type_enum AS ENUM ('citizen', 'authority', 'admin');
+CREATE TYPE severity_enum AS ENUM ('low', 'medium', 'high', 'critical');
+CREATE TYPE status_enum AS ENUM ('reported', 'verified', 'in_progress', 'repaired', 'rejected');
+
 -- Create Users table
 CREATE TABLE IF NOT EXISTS users (
   id SERIAL PRIMARY KEY,
@@ -6,7 +16,7 @@ CREATE TABLE IF NOT EXISTS users (
   first_name VARCHAR(100),
   last_name VARCHAR(100),
   phone VARCHAR(20),
-  user_type ENUM('citizen', 'authority', 'admin') DEFAULT 'citizen',
+  user_type user_type_enum DEFAULT 'citizen',
   profile_picture VARCHAR(500),
   is_active BOOLEAN DEFAULT true,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -19,10 +29,10 @@ CREATE TABLE IF NOT EXISTS potholes (
   reporter_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   latitude DECIMAL(10, 8) NOT NULL,
   longitude DECIMAL(11, 8) NOT NULL,
-  severity ENUM('low', 'medium', 'high', 'critical') DEFAULT 'medium',
+  severity severity_enum DEFAULT 'medium',
   description TEXT,
   image_url VARCHAR(500),
-  status ENUM('reported', 'verified', 'in_progress', 'repaired', 'rejected') DEFAULT 'reported',
+  status status_enum DEFAULT 'reported',
   verified_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
   repair_priority INTEGER DEFAULT 0,
   address VARCHAR(500),
@@ -38,7 +48,7 @@ CREATE TABLE IF NOT EXISTS pothole_updates (
   id SERIAL PRIMARY KEY,
   pothole_id INTEGER NOT NULL REFERENCES potholes(id) ON DELETE CASCADE,
   updated_by INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  status ENUM('reported', 'verified', 'in_progress', 'repaired', 'rejected') NOT NULL,
+  status status_enum NOT NULL,
   comment TEXT,
   image_url VARCHAR(500),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
